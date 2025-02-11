@@ -21,6 +21,7 @@ class AdminMiddleware
             if(Auth::user()->user_type == 1)
             {
                 return $next($request);
+                // dd($request);
             }
             else
             {

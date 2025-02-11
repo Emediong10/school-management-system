@@ -3,14 +3,16 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Facades\Request;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
+   
 
     /**
      * The attributes that are mass assignable.
@@ -42,4 +44,44 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public static function getAdmin()
+    {
+        $return = self::select('users.*')
+        ->where('user_type', '=',1)
+        ->where('is_delete', '=',0);
+
+        if(!empty(Request::get('email')))
+        {
+            $return =  $return->where('email', 'like','%'. Request::get('email') .'%');
+        }
+        if(!empty(Request::get('name')))
+        {
+            $return =  $return->where('name', 'like','%'. Request::get('name') .'%');
+        }
+        if(!empty(Request::get('date')))
+        {
+            $return =  $return->where('created_at', '=', Request::get('date'));
+        }
+       $return = $return->orderBy('id', 'asc')
+        // ->get()
+        ->paginate(5);
+
+        return $return;
+    }
+
+    public static function getSingle($id)
+    {
+        return self::find($id);
+    }
+
+    public static function getEmailSingle($email)
+{
+    return self::where('email', $email)->first();
+}
+    public static function getTokenSingle($remember_token)
+{
+    return self::where('remember_token', $remember_token)->first();
+}
+
 }
